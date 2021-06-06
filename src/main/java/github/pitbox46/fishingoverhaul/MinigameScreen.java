@@ -19,7 +19,8 @@ public class MinigameScreen extends Screen {
     private float fishDeg = 0;
     private static final int FISH_SPEED = 5;
     private float fishSpeed = FISH_SPEED;
-    private int tickCounter = 0;
+    private long tickCounter = 0;
+    private float previousFrame = 0;
     private float partialTickCounter = 360;
     public MinigameScreen(ITextComponent titleIn, Vector3d bobberPos, float catchChance) {
         super(titleIn);
@@ -29,6 +30,8 @@ public class MinigameScreen extends Screen {
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        float ticksSinceLastFrame = tickCounter + partialTicks - previousFrame;
+
         renderBackground(matrixStack);
         Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("fishingoverhaul", "textures/minigame.png"));
         blitCircle(matrixStack, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
@@ -37,7 +40,9 @@ public class MinigameScreen extends Screen {
         drawFish(matrixStack, (this.width / 2) + 2, (this.height / 2) + 2, 73f);
         fishDeg += fishSpeed * partialTicks;
 
-        if((partialTickCounter -= partialTicks * 2) < 0) {
+        previousFrame = tickCounter + partialTicks;
+
+        if((partialTickCounter -= ticksSinceLastFrame * 2) < 0) {
             partialTickCounter = 360;
             PacketHandler.CHANNEL.sendToServer(new MinigameResultPacket(false, bobberPos));
             closeScreen();
@@ -47,12 +52,11 @@ public class MinigameScreen extends Screen {
 
     @Override
     public void tick() {
-        if(tickCounter++ >= 20) {
+        if(tickCounter++ % 20 == 0) {
             if (getMinecraft().player != null)
                 fishSpeed = getMinecraft().player.getRNG().nextBoolean() ? fishSpeed = FISH_SPEED * 3: fishSpeed;
             else
                 fishSpeed = Math.random() > 0.5 ? FISH_SPEED * 3: fishSpeed;
-            tickCounter = 0;
         }
         if(fishSpeed > FISH_SPEED) {
             fishSpeed -= FISH_SPEED / 20f;
@@ -70,9 +74,6 @@ public class MinigameScreen extends Screen {
             closeScreen();
             return true;
         } else {
-            LOGGER.debug(cappedFishDeg);
-            LOGGER.debug(normalizeDegrees(270 - 180 * catchChance));
-            LOGGER.debug(normalizeDegrees(270 + 180 * catchChance));
             partialTickCounter -= 36;
         }
         return super.mouseClicked(mouseX, mouseY, button);
