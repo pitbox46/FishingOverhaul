@@ -8,6 +8,7 @@ import github.pitbox46.fishingoverhaul.network.MinigamePacket;
 import github.pitbox46.fishingoverhaul.network.PacketHandler;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.FishingRodItem;
 import net.minecraft.item.Item;
@@ -18,6 +19,7 @@ import net.minecraft.resources.ResourcePackType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemFishedEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
@@ -32,6 +34,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +51,13 @@ public class FishingOverhaul {
         PROXY = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onFished(ItemFishedEvent event) {
         event.setCanceled(true);
-        List<ItemStack> list = event.getDrops();
-        ItemStack rod;
+        List<ItemStack> lootList = event.getDrops();
         float catchChance = 1f;
         float variability = 0f;
-        for(ItemStack itemStack: list) {
+        for(ItemStack itemStack: lootList) {
             if(FISH_INDEX.get(itemStack.getItem()) != null && FISH_INDEX.get(itemStack.getItem()).getCatchChance() < catchChance) {
                 catchChance = FISH_INDEX.get(itemStack.getItem()).getCatchChance();
                 variability = FISH_INDEX.get(itemStack.getItem()).getVariability();
@@ -66,14 +68,8 @@ public class FishingOverhaul {
         }
         catchChance += (variability * 2 * (event.getPlayer().getRNG().nextFloat() - 0.5));
 
-        if(event.getPlayer().getHeldItem(event.getPlayer().getActiveHand()).getItem() instanceof FishingRodItem) {
-            rod = event.getPlayer().getHeldItem(event.getPlayer().getActiveHand());
-        } else {
-            return;
-        }
         PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) event.getPlayer()), new MinigamePacket(catchChance,  event.getHookEntity().getPositionVec()));
-        CommonProxy.CURRENTLY_PLAYING.put(event.getPlayer().getUniqueID(), list);
-        CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayerEntity)event.getPlayer(), rod, event.getHookEntity(), list);
+        CommonProxy.CURRENTLY_PLAYING.put(event.getPlayer().getUniqueID(), lootList);
     }
 
     @SubscribeEvent
