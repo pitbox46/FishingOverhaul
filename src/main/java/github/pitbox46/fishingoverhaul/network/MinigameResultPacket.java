@@ -1,12 +1,6 @@
 package github.pitbox46.fishingoverhaul.network;
 
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.phys.Vec3;
 
-public class MinigameResultPacket {
-    public final Vector3d bobberPos;
-    public final boolean success;
-    public MinigameResultPacket(boolean success, Vector3d bobberPos) {
-        this.bobberPos = bobberPos;
-        this.success = success;
-    }
+public record MinigameResultPacket(boolean success, Vec3 bobberPos) {
 }

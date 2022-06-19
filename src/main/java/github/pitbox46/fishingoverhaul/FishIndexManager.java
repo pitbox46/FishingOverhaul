@@ -5,18 +5,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import koala.fishingreal.FishingConversion;
-import net.minecraft.client.resources.JsonReloadListener;
-import net.minecraft.item.Item;
-import net.minecraft.profiler.IProfiler;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.world.item.Item;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FishIndexManager extends JsonReloadListener {
+public class FishIndexManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON_INSTANCE = (new GsonBuilder()).registerTypeAdapter(FishIndex.class, new FishIndex.Serializer()).create();
     private FishIndex defaultIndex = null;
     private List<FishIndex> fishIndices = ImmutableList.of();
@@ -31,7 +30,7 @@ public class FishIndexManager extends JsonReloadListener {
 
     public FishIndex getIndexFromItem(Item item) {
         for(FishIndex index: fishIndices) {
-            if(index.getItem().equals(item)) {
+            if(index.item().equals(item)) {
                 return index;
             }
         }
@@ -40,13 +39,13 @@ public class FishIndexManager extends JsonReloadListener {
 
     private boolean checkMatchingItem(List<FishIndex> fishIndices, FishIndex fishIndex) {
         for(FishIndex index: fishIndices) {
-            if(index.getItem().equals(fishIndex.getItem()))
+            if(index.item().equals(fishIndex.item()))
                 return true;
         }
         return false;
     }
 
-    protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
+    protected void apply(Map<ResourceLocation, JsonElement> objectIn, ResourceManager resourceManagerIn, ProfilerFiller profilerIn) {
         List<FishIndex> outputIndicies = new ArrayList<>();
 
         for(Map.Entry<ResourceLocation, JsonElement> resourceLocation: objectIn.entrySet()) {

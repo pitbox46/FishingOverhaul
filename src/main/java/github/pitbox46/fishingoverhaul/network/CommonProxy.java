@@ -1,17 +1,16 @@
 package github.pitbox46.fishingoverhaul.network;
 
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.entity.*;
-import net.minecraft.entity.item.ExperienceOrbEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
@@ -19,13 +18,18 @@ import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 import static koala.fishingreal.FishingReal.FISHING_MANAGER;
+
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
 
 public class CommonProxy {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -40,62 +44,63 @@ public class CommonProxy {
         PacketHandler.init();
     }
 
-    public void handleMinigameResult(NetworkEvent.Context ctx, Vector3d bobberPos, boolean success) {
-        ServerPlayerEntity player = ctx.getSender();
-        List<ItemStack> itemStacks = CURRENTLY_PLAYING.get(player.getUniqueID());
+    public void handleMinigameResult(NetworkEvent.Context ctx, Vec3 bobberPos, boolean success) {
+        ServerPlayer player = ctx.getSender();
+        List<ItemStack> itemStacks = CURRENTLY_PLAYING.get(player.getUUID());
 
         if(success && itemStacks != null) {
             if(ModList.get().isLoaded("fishingreal")) {
                 //Code copied from fishingreal because it would not be easy to use the existing event method
                 for (ItemStack stack : itemStacks) {
-                    CompoundNBT nbt = FISHING_MANAGER.matchWithStack(stack);
+                    CompoundTag nbt = FISHING_MANAGER.matchWithStack(stack);
                     if (nbt != null) {
-                        EntityType.loadEntityAndExecute(nbt, player.getEntityWorld(), (entity) -> {
-                            World w = player.getEntityWorld();
-                            if (w instanceof ServerWorld) {
-                                ServerWorld world = (ServerWorld) w;
-                                entity.setLocationAndAngles(bobberPos.getX(),bobberPos.getY(),bobberPos.getZ(), player.getRNG().nextFloat() * 360, player.getRNG().nextFloat() * 360);
-                                double dX = player.getPositionVec().getX() -bobberPos.getX();
-                                double dY = player.getPositionVec().getY() -bobberPos.getY();
-                                double dZ = player.getPositionVec().getZ() -bobberPos.getZ();
+                        EntityType.loadEntityRecursive(nbt, player.getCommandSenderWorld(), (entity) -> {
+                            Level w = player.getCommandSenderWorld();
+                            if (w instanceof ServerLevel) {
+                                ServerLevel world = (ServerLevel) w;
+                                entity.moveTo(bobberPos.x(),bobberPos.y(),bobberPos.z(), player.getRandom().nextFloat() * 360, player.getRandom().nextFloat() * 360);
+                                double dX = player.position().x() -bobberPos.x();
+                                double dY = player.position().y() -bobberPos.y();
+                                double dZ = player.position().z() -bobberPos.z();
                                 double mult = 0.12D;
-                                entity.setMotion(dX * mult, dY * mult + Math.sqrt(Math.sqrt(dX * dX + dY * dY + dZ * dZ)) * 0.14D, dZ * mult);
-                                world.addEntity(new ExperienceOrbEntity(player.world, player.getPositionVec().getX(), player.getPositionVec().getY() + 0.5D, player.getPositionVec().getZ() + 0.5D, player.world.getRandom().nextInt(6) + 1));
-                                if (stack.getItem().isIn(ItemTags.FISHES)) {
-                                    player.addStat(Stats.FISH_CAUGHT, 1);
+                                entity.setDeltaMovement(dX * mult, dY * mult + Math.sqrt(Math.sqrt(dX * dX + dY * dY + dZ * dZ)) * 0.14D, dZ * mult);
+                                world.addFreshEntity(new ExperienceOrb(player.level, player.position().x(), player.position().y() + 0.5D, player.position().z() + 0.5D, player.level.getRandom().nextInt(6) + 1));
+                                if (stack.is(ItemTags.FISHES)) {
+                                    player.awardStat(Stats.FISH_CAUGHT, 1);
                                 }
 
-                                if (FISHING_MANAGER.getConversionFromStack(stack).isRandomizeNBT() && entity instanceof MobEntity) {
-                                    ((MobEntity) entity).onInitialSpawn(world, world.getDifficultyForLocation(player.getPosition()), SpawnReason.NATURAL, (ILivingEntityData) null, (CompoundNBT) null);
+                                if (FISHING_MANAGER.getConversionFromStack(stack).isRandomizeNBT() && entity instanceof Mob) {
+                                    ((Mob) entity).finalizeSpawn(world, world.getCurrentDifficultyAt(player.blockPosition()), MobSpawnType.NATURAL, (SpawnGroupData) null, (CompoundTag) null);
                                 }
 
-                                return !world.summonEntity(entity) ? null : entity;
+                                return !world.addWithUUID(entity) ? null : entity;
                             } else {
                                 return null;
                             }
                         });
                     }
                 }
-            } else {
+            }
+            else {
                 for (ItemStack itemStack : itemStacks) {
-                    ItemEntity entity = new ItemEntity(player.world, bobberPos.getX(), bobberPos.getY(), bobberPos.getZ(), itemStack);
-                    entity.setPosition(bobberPos.getX(), bobberPos.getY(), bobberPos.getZ());
-                    double d0 = player.getPosX() - bobberPos.getX();
-                    double d1 = player.getPosY() - bobberPos.getY();
-                    double d2 = player.getPosZ() - bobberPos.getZ();
-                    entity.setMotion(d0 * 0.1D, d1 * 0.1D + Math.sqrt(Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2)) * 0.08D, d2 * 0.1D);
-                    player.world.addEntity(entity);
-                    player.world.addEntity(new ExperienceOrbEntity(player.world, player.getPosX(), player.getPosY() + 0.5D, player.getPosZ() + 0.5D, player.getRNG().nextInt(6) + 1));
-                    if (entity.getItem().getItem().isIn(ItemTags.FISHES)) {
-                        player.addStat(Stats.FISH_CAUGHT, 1);
+                    ItemEntity entity = new ItemEntity(player.level, bobberPos.x(), bobberPos.y(), bobberPos.z(), itemStack);
+                    entity.setPos(bobberPos.x(), bobberPos.y(), bobberPos.z());
+                    double d0 = player.getX() - bobberPos.x();
+                    double d1 = player.getY() - bobberPos.y();
+                    double d2 = player.getZ() - bobberPos.z();
+                    entity.setDeltaMovement(d0 * 0.1D, d1 * 0.1D + Math.sqrt(Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2)) * 0.08D, d2 * 0.1D);
+                    player.level.addFreshEntity(entity);
+                    player.level.addFreshEntity(new ExperienceOrb(player.level, player.getX(), player.getY() + 0.5D, player.getZ() + 0.5D, player.getRandom().nextInt(6) + 1));
+                    if (entity.getItem().is(ItemTags.FISHES)) {
+                        player.awardStat(Stats.FISH_CAUGHT, 1);
                     }
                 }
             }
         }
-        CURRENTLY_PLAYING.remove(player.getUniqueID());
+        CURRENTLY_PLAYING.remove(player.getUUID());
     }
 
     //Client
-    public void handleOpenMinigame(NetworkEvent.Context ctx, Vector3d bobberPos, float catchChance) {
+    public void handleOpenMinigame(NetworkEvent.Context ctx, Vec3 bobberPos, float catchChance) {
     }
 }

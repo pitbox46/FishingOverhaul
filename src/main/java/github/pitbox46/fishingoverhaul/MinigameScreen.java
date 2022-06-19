@@ -1,20 +1,21 @@
 package github.pitbox46.fishingoverhaul;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import github.pitbox46.fishingoverhaul.network.PacketHandler;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.resources.ResourceLocation;
+import com.mojang.math.Quaternion;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class MinigameScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
-    private final Vector3d bobberPos;
+    private final Vec3 bobberPos;
     private final float catchChance;
     private float fishDeg = 0;
     private static final int FISH_SPEED = 5;
@@ -22,18 +23,19 @@ public class MinigameScreen extends Screen {
     private long tickCounter = 0;
     private float previousFrame = 0;
     private float partialTickCounter = 360;
-    public MinigameScreen(ITextComponent titleIn, Vector3d bobberPos, float catchChance) {
+    public MinigameScreen(Component titleIn, Vec3 bobberPos, float catchChance) {
         super(titleIn);
         this.catchChance = catchChance;
         this.bobberPos = bobberPos;
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         float ticksSinceLastFrame = tickCounter + partialTicks - previousFrame;
 
         renderBackground(matrixStack);
-        Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("fishingoverhaul", "textures/minigame.png"));
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, new ResourceLocation("fishingoverhaul", "textures/minigame.png"));
         blitCircle(matrixStack, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
         blitCircle(matrixStack, this.width / 2, this.height / 2, 4, 0, 360, 172, 0, 151);
         blitCircle(matrixStack, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(270 - 180 * catchChance), 360 * catchChance, 356, 0, 151);
@@ -45,7 +47,7 @@ public class MinigameScreen extends Screen {
         if((partialTickCounter -= ticksSinceLastFrame * 2) < 0) {
             partialTickCounter = 360;
             PacketHandler.CHANNEL.sendToServer(new MinigameResultPacket(false, bobberPos));
-            closeScreen();
+            onClose();
         }
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
@@ -54,7 +56,7 @@ public class MinigameScreen extends Screen {
     public void tick() {
         if(tickCounter++ % 20 == 0) {
             if (getMinecraft().player != null)
-                fishSpeed = getMinecraft().player.getRNG().nextBoolean() ? fishSpeed = FISH_SPEED * 3: fishSpeed;
+                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? fishSpeed = FISH_SPEED * 3: fishSpeed;
             else
                 fishSpeed = Math.random() > 0.5 ? FISH_SPEED * 3: fishSpeed;
         }
@@ -71,7 +73,7 @@ public class MinigameScreen extends Screen {
         float cappedFishDeg = normalizeDegrees(fishDeg);
         if(isInRange(cappedFishDeg, normalizeDegrees(270 - 180 * catchChance), normalizeDegrees(270 + 180 * catchChance))) {
             PacketHandler.CHANNEL.sendToServer(new MinigameResultPacket(true, bobberPos));
-            closeScreen();
+            onClose();
             return true;
         } else {
             partialTickCounter -= 36;
@@ -84,17 +86,17 @@ public class MinigameScreen extends Screen {
         return false;
     }
 
-    private void drawFish(MatrixStack matrixStack, int centerX, int centerY, float radius) {
-        matrixStack.push();
+    private void drawFish(PoseStack matrixStack, int centerX, int centerY, float radius) {
+        matrixStack.pushPose();
         double x = radius * Math.cos(-(fishDeg / 180d) * Math.PI);
         double y = radius * Math.sin(-(fishDeg / 180d) * Math.PI);
         matrixStack.translate(centerX + x, centerY + y, 0);
-        matrixStack.rotate(new Quaternion(0, 0, 90 - fishDeg, true));
+        matrixStack.mulPose(new Quaternion(0, 0, 90 - fishDeg, true));
         if(fishSpeed < 0)
             blit(matrixStack, -2, -5, 326, 0, 11, 6, 512, 512);
         else
             blit(matrixStack, -2, -5, 326, 6, 11, 6, 512, 512);
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 
     private float normalizeDegrees(float degreesIn) {
@@ -105,7 +107,7 @@ public class MinigameScreen extends Screen {
         return ((lower <= upper && degreesIn >= lower && degreesIn <= upper) || (lower > upper && !(degreesIn <= lower && degreesIn >= upper)));
     }
 
-    private void blitCircle(MatrixStack matrixStack, int centerX, int centerY, int stroke, float degreesStart, float degreesForward, int uOffset, int vOffset, int diameter) {
+    private void blitCircle(PoseStack matrixStack, int centerX, int centerY, int stroke, float degreesStart, float degreesForward, int uOffset, int vOffset, int diameter) {
         int radius = diameter / 2;
         int textureCenterX = uOffset + radius;
         int textureCenterY = vOffset + radius;

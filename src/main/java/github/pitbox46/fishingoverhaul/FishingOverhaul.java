@@ -1,19 +1,11 @@
 package github.pitbox46.fishingoverhaul;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import github.pitbox46.fishingoverhaul.network.ClientProxy;
 import github.pitbox46.fishingoverhaul.network.CommonProxy;
 import github.pitbox46.fishingoverhaul.network.MinigamePacket;
 import github.pitbox46.fishingoverhaul.network.PacketHandler;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.resources.IResourcePack;
-import net.minecraft.resources.ResourcePackType;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.player.ItemFishedEvent;
@@ -21,27 +13,16 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.fmllegacy.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Mod("fishingoverhaul")
 public class FishingOverhaul {
     private static final Logger LOGGER = LogManager.getLogger();
     public static final FishIndexManager FISH_INDEX_MANAGER = new FishIndexManager();
-//    public static final Map<Item, FishIndex> FISH_INDEX = new HashMap<>();
-//    public static FishIndex DEFAULT_INDEX = new FishIndex(item, 0.1f, 0.05f);
     public static CommonProxy PROXY;
 
     public FishingOverhaul() {
@@ -56,15 +37,15 @@ public class FishingOverhaul {
         float catchChance = 1f;
         float variability = 0f;
         for(ItemStack itemStack: lootList) {
-            if(FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).getCatchChance() < catchChance) {
-                catchChance = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).getCatchChance();
-                variability = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).getVariability();
+            if(FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).catchChance() < catchChance) {
+                catchChance = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).catchChance();
+                variability = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).variability();
             }
         }
-        catchChance += (variability * 2 * (event.getPlayer().getRNG().nextFloat() - 0.5));
+        catchChance += (variability * 2 * (event.getPlayer().getRandom().nextFloat() - 0.5));
 
-        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) event.getPlayer()), new MinigamePacket(catchChance,  event.getHookEntity().getPositionVec()));
-        CommonProxy.CURRENTLY_PLAYING.put(event.getPlayer().getUniqueID(), lootList);
+        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new MinigamePacket(catchChance,  event.getHookEntity().position()));
+        CommonProxy.CURRENTLY_PLAYING.put(event.getPlayer().getUUID(), lootList);
     }
 
     @SubscribeEvent
