@@ -23,7 +23,7 @@ public record FishIndex(Item item, float catchChance, float variability) {
 
         public JsonElement serialize(FishIndex src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
-            obj.addProperty("item", src.item().getRegistryName().toString());
+            obj.addProperty("item", ForgeRegistries.ITEMS.getKey(src.item()).toString());
             obj.addProperty("catch_chance", src.catchChance());
             obj.addProperty("variability", src.variability());
             return obj;
