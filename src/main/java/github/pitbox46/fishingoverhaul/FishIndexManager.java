@@ -12,13 +12,14 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class FishIndexManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON_INSTANCE = (new GsonBuilder()).registerTypeAdapter(FishIndex.class, new FishIndex.Serializer()).create();
     private FishIndex defaultIndex = null;
-    private List<FishIndex> fishIndices = ImmutableList.of();
+    private final Map<Item, FishIndex> fishMap = new HashMap<>();
 
     public FishIndexManager() {
         super(GSON_INSTANCE, "fishing_index");
@@ -29,36 +30,21 @@ public class FishIndexManager extends SimpleJsonResourceReloadListener {
     }
 
     public FishIndex getIndexFromItem(Item item) {
-        for(FishIndex index: fishIndices) {
-            if(index.item().equals(item)) {
-                return index;
-            }
-        }
-        return defaultIndex;
-    }
-
-    private boolean checkMatchingItem(List<FishIndex> fishIndices, FishIndex fishIndex) {
-        for(FishIndex index: fishIndices) {
-            if(index.item().equals(fishIndex.item()))
-                return true;
-        }
-        return false;
+        return fishMap.getOrDefault(item, defaultIndex);
     }
 
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, ResourceManager resourceManagerIn, ProfilerFiller profilerIn) {
-        List<FishIndex> outputIndicies = new ArrayList<>();
-
         for(Map.Entry<ResourceLocation, JsonElement> resourceLocation: objectIn.entrySet()) {
             JsonObject json = resourceLocation.getValue().getAsJsonObject();
             if(json.has("default")) {
                 defaultIndex = GSON_INSTANCE.fromJson(json.get("default"), FishIndex.class);
-            } else if(json.has("entries")) {
+            }
+            if(json.has("entries")) {
                 for(JsonElement entry: json.getAsJsonArray("entries")) {
-                    outputIndicies.removeIf(fishIndex -> checkMatchingItem(fishIndices, fishIndex));
-                    outputIndicies.add(GSON_INSTANCE.fromJson(entry, FishIndex.class));
+                    FishIndex fish = GSON_INSTANCE.fromJson(entry, FishIndex.class);
+                    fishMap.put(fish.item(), fish);
                 }
             }
         }
-        this.fishIndices = ImmutableList.copyOf(outputIndicies);
     }
 }
