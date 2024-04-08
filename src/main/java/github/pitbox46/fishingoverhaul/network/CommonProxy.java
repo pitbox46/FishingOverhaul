@@ -46,31 +46,32 @@ public class CommonProxy {
             if(ModList.get().isLoaded("fishingreal")) {
                 //Code copied from fishingreal because it would not be easy to use the existing event method
                 for (ItemStack stack : itemStacks) {
-                    FishingConversion.FishingResult result = FISHING_MANAGER.getConversionFromStack(stack).result();
+                    FishingConversion.FishingResult result = FISHING_MANAGER.getConversionResultFromStack(stack);
                     if (result.entity() != null) {
-                        Entity entity = result.entity().create(player.level);
+                        Level level = player.level();
+                        Entity entity = result.entity().create(level);
                         if (entity != null) {
                             Optional<CompoundTag> optional = result.tag();
                             Objects.requireNonNull(entity);
                             optional.ifPresent(entity::load);
-                            if (player.level instanceof ServerLevel level) {
+                            if (level instanceof ServerLevel serverLevel) {
                                 entity.moveTo(bobberPos.x(), bobberPos.y(), bobberPos.z(), 0, 0);
                                 double dX = player.position().x() - bobberPos.x();
                                 double dY = player.position().y() - bobberPos.y();
                                 double dZ = player.position().z() - bobberPos.z();
                                 double mult = 0.12;
                                 entity.setDeltaMovement(dX * mult, dY * mult + Math.sqrt(Math.sqrt(dX * dX + dY * dY + dZ * dZ)) * 0.14, dZ * mult);
-                                level.addFreshEntity(new ExperienceOrb(player.level, player.position().x(), player.position().y() + 0.5, player.position().z() + 0.5, player.level.getRandom().nextInt(6) + 1));
+                                serverLevel.addFreshEntity(new ExperienceOrb(serverLevel, player.position().x(), player.position().y() + 0.5, player.position().z() + 0.5, player.getRandom().nextInt(6) + 1));
                                 if (stack.is(ItemTags.FISHES)) {
                                     player.awardStat(Stats.FISH_CAUGHT, 1);
                                 }
 
                                 if (result.randomizeNbt() && entity instanceof Mob) {
                                     Mob mob = (Mob)entity;
-                                    mob.finalizeSpawn(level, level.getCurrentDifficultyAt(player.blockPosition()), MobSpawnType.NATURAL, (SpawnGroupData)null, (CompoundTag)null);
+                                    mob.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(player.blockPosition()), MobSpawnType.NATURAL, (SpawnGroupData)null, (CompoundTag)null);
                                 }
 
-                                level.addFreshEntity(entity);
+                                serverLevel.addFreshEntity(entity);
                             }
                         }
                     }
@@ -89,14 +90,14 @@ public class CommonProxy {
     }
 
     public void spawnItem(Player player, Vec3 bobberPos, ItemStack itemStack) {
-        ItemEntity entity = new ItemEntity(player.level, bobberPos.x(), bobberPos.y(), bobberPos.z(), itemStack);
+        ItemEntity entity = new ItemEntity(player.level(), bobberPos.x(), bobberPos.y(), bobberPos.z(), itemStack);
         entity.setPos(bobberPos.x(), bobberPos.y(), bobberPos.z());
         double d0 = player.getX() - bobberPos.x();
         double d1 = player.getY() - bobberPos.y();
         double d2 = player.getZ() - bobberPos.z();
         entity.setDeltaMovement(d0 * 0.1D, d1 * 0.1D + Math.sqrt(Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2)) * 0.08D, d2 * 0.1D);
-        player.level.addFreshEntity(entity);
-        player.level.addFreshEntity(new ExperienceOrb(player.level, player.getX(), player.getY() + 0.5D, player.getZ() + 0.5D, player.getRandom().nextInt(6) + 1));
+        player.level().addFreshEntity(entity);
+        player.level().addFreshEntity(new ExperienceOrb(player.level(), player.getX(), player.getY() + 0.5D, player.getZ() + 0.5D, player.getRandom().nextInt(6) + 1));
         if (entity.getItem().is(ItemTags.FISHES)) {
             player.awardStat(Stats.FISH_CAUGHT, 1);
         }

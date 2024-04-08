@@ -42,10 +42,10 @@ public class FishingOverhaul {
                 variability = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).variability();
             }
         }
-        catchChance += (variability * 2 * (event.getPlayer().getRandom().nextFloat() - 0.5));
+        catchChance += (float) (variability * 2 * (event.getEntity().getRandom().nextFloat() - 0.5));
 
-        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getPlayer()), new MinigamePacket(catchChance,  event.getHookEntity().position()));
-        CommonProxy.CURRENTLY_PLAYING.put(event.getPlayer().getUUID(), lootList);
+        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()), new MinigamePacket(catchChance,  event.getHookEntity().position()));
+        CommonProxy.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), lootList);
     }
 
     @SubscribeEvent

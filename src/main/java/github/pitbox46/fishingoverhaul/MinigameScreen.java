@@ -2,19 +2,21 @@ package github.pitbox46.fishingoverhaul;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import github.pitbox46.fishingoverhaul.network.PacketHandler;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.math.Quaternion;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class MinigameScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
+    public static final ResourceLocation TEX = new ResourceLocation("fishingoverhaul", "textures/minigame.png");
     private final Vec3 bobberPos;
     private final float catchChance;
     private float fishDeg = 0;
@@ -30,16 +32,15 @@ public class MinigameScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics pGuiGraphics, int mouseX, int mouseY, float partialTicks) {
         float ticksSinceLastFrame = tickCounter + partialTicks - previousFrame;
 
-        renderBackground(matrixStack);
+        renderBackground(pGuiGraphics);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, new ResourceLocation("fishingoverhaul", "textures/minigame.png"));
-        blitCircle(matrixStack, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
-        blitCircle(matrixStack, this.width / 2, this.height / 2, 4, 0, 360, 172, 0, 151);
-        blitCircle(matrixStack, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(270 - 180 * catchChance), 360 * catchChance, 356, 0, 151);
-        drawFish(matrixStack, (this.width / 2) + 2, (this.height / 2) + 2, 73f);
+        blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
+        blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 0, 360, 172, 0, 151);
+        blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(270 - 180 * catchChance), 360 * catchChance, 356, 0, 151);
+        drawFish(pGuiGraphics, (this.width / 2) + 2, (this.height / 2) + 2, 73f);
         fishDeg += fishSpeed * partialTicks;
 
         previousFrame = tickCounter + partialTicks;
@@ -49,7 +50,7 @@ public class MinigameScreen extends Screen {
             PacketHandler.CHANNEL.sendToServer(new MinigameResultPacket(false, bobberPos));
             onClose();
         }
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        super.render(pGuiGraphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -86,17 +87,15 @@ public class MinigameScreen extends Screen {
         return false;
     }
 
-    private void drawFish(PoseStack matrixStack, int centerX, int centerY, float radius) {
-        matrixStack.pushPose();
+    private void drawFish(GuiGraphics guiGraphics, int centerX, int centerY, float radius) {
+        PoseStack poseStack = guiGraphics.pose();
+        poseStack.pushPose();
         double x = radius * Math.cos(-(fishDeg / 180d) * Math.PI);
         double y = radius * Math.sin(-(fishDeg / 180d) * Math.PI);
-        matrixStack.translate(centerX + x, centerY + y, 0);
-        matrixStack.mulPose(new Quaternion(0, 0, 90 - fishDeg, true));
-        if(fishSpeed < 0)
-            blit(matrixStack, -2, -5, 326, 0, 11, 6, 512, 512);
-        else
-            blit(matrixStack, -2, -5, 326, 6, 11, 6, 512, 512);
-        matrixStack.popPose();
+        poseStack.translate(centerX + x, centerY + y, 0);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(90 - fishDeg));
+        guiGraphics.blit(TEX, -2, -5, 326, fishSpeed < 0 ? 0 : 6, 11, 6, 512, 512);
+        poseStack.popPose();
     }
 
     private float normalizeDegrees(float degreesIn) {
@@ -107,7 +106,7 @@ public class MinigameScreen extends Screen {
         return ((lower <= upper && degreesIn >= lower && degreesIn <= upper) || (lower > upper && !(degreesIn <= lower && degreesIn >= upper)));
     }
 
-    private void blitCircle(PoseStack matrixStack, int centerX, int centerY, int stroke, float degreesStart, float degreesForward, int uOffset, int vOffset, int diameter) {
+    private void blitCircle(GuiGraphics guiGraphics, int centerX, int centerY, int stroke, float degreesStart, float degreesForward, int uOffset, int vOffset, int diameter) {
         int radius = diameter / 2;
         int textureCenterX = uOffset + radius;
         int textureCenterY = vOffset + radius;
@@ -116,7 +115,7 @@ public class MinigameScreen extends Screen {
         for(float i = degreesStart; i < degreesStart + degreesForward; i++) {
             x = (int) Math.round(radius * Math.cos(-(i / 180d) * Math.PI));
             y = (int) Math.round(radius * Math.sin(-(i / 180d) * Math.PI));
-            blit(matrixStack, x + centerX, y + centerY, x + textureCenterX, y + textureCenterY, stroke, stroke, 512, 512);
+            guiGraphics.blit(TEX, x + centerX, y + centerY, x + textureCenterX, y + textureCenterY, stroke, stroke, 512, 512);
         }
     }
 }
