@@ -4,19 +4,16 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
-import github.pitbox46.fishingoverhaul.network.PacketHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class MinigameScreen extends Screen {
-    private static final Logger LOGGER = LogManager.getLogger();
-    public static final ResourceLocation TEX = new ResourceLocation("fishingoverhaul", "textures/minigame.png");
+    public static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath("fishingoverhaul", "textures/minigame.png");
     private final Vec3 bobberPos;
     private final float catchChance;
     private float fishDeg = 0;
@@ -35,7 +32,8 @@ public class MinigameScreen extends Screen {
     public void render(GuiGraphics pGuiGraphics, int mouseX, int mouseY, float partialTicks) {
         float ticksSinceLastFrame = tickCounter + partialTicks - previousFrame;
 
-        renderBackground(pGuiGraphics);
+        renderBackground(pGuiGraphics, mouseX, mouseY, partialTicks);
+
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
         blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 0, 360, 172, 0, 151);
@@ -47,17 +45,18 @@ public class MinigameScreen extends Screen {
 
         if((partialTickCounter -= ticksSinceLastFrame * 2) < 0) {
             partialTickCounter = 360;
-            PacketHandler.CHANNEL.sendToServer(new MinigameResultPacket(false, bobberPos));
+            PacketDistributor.sendToServer(new MinigameResultPacket(false, bobberPos));
             onClose();
         }
-        super.render(pGuiGraphics, mouseX, mouseY, partialTicks);
+
+        renderables.forEach(renderable -> renderable.render(pGuiGraphics, mouseX, mouseY, partialTicks));
     }
 
     @Override
     public void tick() {
         if(tickCounter++ % 20 == 0) {
             if (getMinecraft().player != null)
-                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? fishSpeed = FISH_SPEED * 3: fishSpeed;
+                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? FISH_SPEED * 3 : fishSpeed;
             else
                 fishSpeed = Math.random() > 0.5 ? FISH_SPEED * 3: fishSpeed;
         }
@@ -73,7 +72,7 @@ public class MinigameScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         float cappedFishDeg = normalizeDegrees(fishDeg);
         if(isInRange(cappedFishDeg, normalizeDegrees(270 - 180 * catchChance), normalizeDegrees(270 + 180 * catchChance))) {
-            PacketHandler.CHANNEL.sendToServer(new MinigameResultPacket(true, bobberPos));
+            PacketDistributor.sendToServer(new MinigameResultPacket(true, bobberPos));
             onClose();
             return true;
         } else {

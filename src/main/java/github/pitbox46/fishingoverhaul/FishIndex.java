@@ -1,9 +1,9 @@
 package github.pitbox46.fishingoverhaul;
 
 import com.google.gson.*;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.lang.reflect.Type;
 
@@ -14,7 +14,7 @@ public record FishIndex(Item item, float catchChance, float variability) {
             JsonObject obj = json.getAsJsonObject();
             Item item = null;
             if (obj.has("item")) {
-                item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(obj.get("item").getAsString()));
+                item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(obj.get("item").getAsString()));
             }
             float catchChance = obj.get("catch_chance").getAsFloat();
             float variability = obj.get("variability").getAsFloat();
@@ -23,7 +23,7 @@ public record FishIndex(Item item, float catchChance, float variability) {
 
         public JsonElement serialize(FishIndex src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
-            obj.addProperty("item", ForgeRegistries.ITEMS.getKey(src.item()).toString());
+            obj.addProperty("item", BuiltInRegistries.ITEM.getKey(src.item()).toString());
             obj.addProperty("catch_chance", src.catchChance());
             obj.addProperty("variability", src.variability());
             return obj;
