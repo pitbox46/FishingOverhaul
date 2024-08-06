@@ -38,7 +38,7 @@ public class FishingOverhaul {
         registrar.playToClient(
                 MinigamePacket.TYPE,
                 MinigamePacket.CODEC,
-                new MainThreadPayloadHandler<>(ModClientPayloadHandler::handleOpenMinigame)
+                (payload, context) -> context.enqueueWork(() -> ModClientPayloadHandler.handleOpenMinigame(payload, context))
         );
         registrar.playToServer(
                 MinigameResultPacket.TYPE,
