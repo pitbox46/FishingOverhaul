@@ -4,6 +4,7 @@ import com.google.gson.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 
 import java.lang.reflect.Type;
 
@@ -12,7 +13,7 @@ public record FishIndex(Item item, float catchChance, float variability) {
     public static class Serializer implements JsonDeserializer<FishIndex>, JsonSerializer<FishIndex> {
         public FishIndex deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
-            Item item = null;
+            Item item = Items.AIR;
             if (obj.has("item")) {
                 item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(obj.get("item").getAsString()));
             }
