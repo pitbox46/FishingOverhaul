@@ -2,7 +2,6 @@ package github.pitbox46.fishingoverhaul.network;
 
 import github.pitbox46.fishingoverhaul.FishingOverhaul;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
@@ -21,13 +20,10 @@ public class PacketHandler {
                 MinigamePacket.class,
                 (msg, pb) -> {
                     pb.writeFloat(msg.catchChance());
-                    pb.writeDouble(msg.bobberPos().x());
-                    pb.writeDouble(msg.bobberPos().y());
-                    pb.writeDouble(msg.bobberPos().z());
                 },
-                pb -> new MinigamePacket(pb.readFloat(), new Vec3(pb.readDouble(), pb.readDouble(), pb.readDouble())),
+                pb -> new MinigamePacket(pb.readFloat()),
                 (msg, ctx) -> {
-                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleOpenMinigame(ctx.get(), msg.bobberPos(), msg.catchChance()));
+                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleOpenMinigame(ctx.get(), msg.catchChance()));
                     ctx.get().setPacketHandled(true);
                 });
         CHANNEL.registerMessage(
@@ -35,13 +31,10 @@ public class PacketHandler {
                 MinigameResultPacket.class,
                 (msg, pb) -> {
                     pb.writeBoolean(msg.success());
-                    pb.writeDouble(msg.bobberPos().x());
-                    pb.writeDouble(msg.bobberPos().y());
-                    pb.writeDouble(msg.bobberPos().z());
                 },
-                pb -> new MinigameResultPacket(pb.readBoolean(), new Vec3(pb.readDouble(), pb.readDouble(), pb.readDouble())),
+                pb -> new MinigameResultPacket(pb.readBoolean()),
                 (msg, ctx) -> {
-                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleMinigameResult(ctx.get(), msg.bobberPos(), msg.success()));
+                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleMinigameResult(ctx.get(), msg.success()));
                     ctx.get().setPacketHandled(true);
                 });
     }

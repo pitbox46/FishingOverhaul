@@ -9,10 +9,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.player.ItemFishedEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,9 +30,9 @@ public class FishingOverhaul {
         PROXY = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onFished(ItemFishedEvent event) {
-        event.setCanceled(true);
+    @SubscribeEvent
+    //Listens for ItemFishedEventPre
+    public void onFished(ItemFishedEventPre event) {
         List<ItemStack> lootList = event.getDrops();
         float catchChance = 1f;
         float variability = 0f;
@@ -44,8 +44,8 @@ public class FishingOverhaul {
         }
         catchChance += (float) (variability * 2 * (event.getEntity().getRandom().nextFloat() - 0.5));
 
-        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()), new MinigamePacket(catchChance,  event.getHookEntity().position()));
-        CommonProxy.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), lootList);
+        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()), new MinigamePacket(catchChance));
+        CommonProxy.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), event.getHookEntity().getUUID());
     }
 
     @SubscribeEvent
