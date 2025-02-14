@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -14,13 +16,13 @@ import net.minecraft.world.item.Items;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FishIndexManager extends SimpleJsonResourceReloadListener {
+public class FishIndexManager extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON_INSTANCE = (new GsonBuilder()).registerTypeAdapter(FishIndex.class, new FishIndex.Serializer()).create();
     private FishIndex defaultIndex = new FishIndex(Items.AIR, 0.1F, 0.05F);
     private final Map<Item, FishIndex> fishMap = new HashMap<>();
 
     public FishIndexManager() {
-        super(GSON_INSTANCE, "fishing_index");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("fish_index"));
     }
 
     public FishIndex getDefaultIndex() {

@@ -15,7 +15,7 @@ public record FishIndex(Item item, float catchChance, float variability) {
             JsonObject obj = json.getAsJsonObject();
             Item item = Items.AIR;
             if (obj.has("item")) {
-                item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(obj.get("item").getAsString()));
+                item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(obj.get("item").getAsString()));
             }
             float catchChance = obj.get("catch_chance").getAsFloat();
             float variability = obj.get("variability").getAsFloat();

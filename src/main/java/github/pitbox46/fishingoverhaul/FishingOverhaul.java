@@ -4,13 +4,14 @@ import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import github.pitbox46.fishingoverhaul.network.ModClientPayloadHandler;
 import github.pitbox46.fishingoverhaul.network.ModServerPayloadHandler;
 import github.pitbox46.fishingoverhaul.network.MinigamePacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.MainThreadPayloadHandler;
@@ -63,7 +64,7 @@ public class FishingOverhaul {
     }
 
     @SubscribeEvent
-    public void addReloadListener(AddReloadListenerEvent event) {
-        event.addListener(FISH_INDEX_MANAGER);
+    public void addReloadListener(AddServerReloadListenersEvent event) {
+        event.addListener(ResourceLocation.fromNamespaceAndPath(MODID, "fish_index"), FISH_INDEX_MANAGER);
     }
 }
