@@ -6,13 +6,11 @@ import github.pitbox46.fishingoverhaul.network.ModServerPayloadHandler;
 import github.pitbox46.fishingoverhaul.network.MinigamePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.MainThreadPayloadHandler;
@@ -47,9 +45,8 @@ public class FishingOverhaul {
         );
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onFished(ItemFishedEvent event) {
-        event.setCanceled(true);
+    @SubscribeEvent
+    public void onFished(ItemFishedEventPre event) {
         List<ItemStack> lootList = event.getDrops();
         float catchChance = 1f;
         float variability = 0f;
@@ -61,8 +58,8 @@ public class FishingOverhaul {
         }
         catchChance += (float) (variability * 2 * (event.getEntity().getRandom().nextFloat() - 0.5));
 
-        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new MinigamePacket(catchChance,  event.getHookEntity().position()));
-        ModServerPayloadHandler.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), lootList);
+        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new MinigamePacket(catchChance));
+        ModServerPayloadHandler.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), event.getHookEntity().getUUID());
     }
 
     @SubscribeEvent

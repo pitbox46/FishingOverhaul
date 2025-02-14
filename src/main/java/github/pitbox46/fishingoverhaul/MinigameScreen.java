@@ -9,12 +9,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class MinigameScreen extends Screen {
     public static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath("fishingoverhaul", "textures/minigame.png");
-    private final Vec3 bobberPos;
     private final float catchChance;
     private float fishDeg = 0;
     private static final int FISH_SPEED = 5;
@@ -22,10 +20,9 @@ public class MinigameScreen extends Screen {
     private long tickCounter = 0;
     private float previousFrame = 0;
     private float partialTickCounter = 360;
-    public MinigameScreen(Component titleIn, Vec3 bobberPos, float catchChance) {
+    public MinigameScreen(Component titleIn, float catchChance) {
         super(titleIn);
         this.catchChance = catchChance;
-        this.bobberPos = bobberPos;
     }
 
     @Override
@@ -45,7 +42,7 @@ public class MinigameScreen extends Screen {
 
         if((partialTickCounter -= ticksSinceLastFrame * 2) < 0) {
             partialTickCounter = 360;
-            PacketDistributor.sendToServer(new MinigameResultPacket(false, bobberPos));
+            PacketDistributor.sendToServer(new MinigameResultPacket(false));
             onClose();
         }
 
@@ -72,7 +69,7 @@ public class MinigameScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         float cappedFishDeg = normalizeDegrees(fishDeg);
         if(isInRange(cappedFishDeg, normalizeDegrees(270 - 180 * catchChance), normalizeDegrees(270 + 180 * catchChance))) {
-            PacketDistributor.sendToServer(new MinigameResultPacket(true, bobberPos));
+            PacketDistributor.sendToServer(new MinigameResultPacket(true));
             onClose();
             return true;
         } else {

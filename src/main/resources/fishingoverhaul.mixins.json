@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "fightnbtintegration.refmap.json",
   "mixins": [
+    "FishingHookMixin"
   ],
   "client": [
   ],
