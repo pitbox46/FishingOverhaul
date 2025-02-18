@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "github.pitbox46.fishingoverhaul.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "fightnbtintegration.refmap.json",
+  "refmap": "fishingoverhaul.refmap.json",
   "mixins": [
     "FishingHookMixin"
   ],
