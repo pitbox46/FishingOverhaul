@@ -1,0 +1,2 @@
+- Use codecs for FishIndex
+- Fix fishing_index not being found
