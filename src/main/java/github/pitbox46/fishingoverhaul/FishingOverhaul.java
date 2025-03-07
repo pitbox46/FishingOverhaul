@@ -1,5 +1,6 @@
 package github.pitbox46.fishingoverhaul;
 
+import github.pitbox46.fishingoverhaul.fishindex.FishIndexManager;
 import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import github.pitbox46.fishingoverhaul.network.ModClientPayloadHandler;
 import github.pitbox46.fishingoverhaul.network.ModServerPayloadHandler;
@@ -24,7 +25,7 @@ import java.util.List;
 @Mod("fishingoverhaul")
 public class FishingOverhaul {
     public static final Logger LOGGER = LogManager.getLogger();
-    public static final FishIndexManager FISH_INDEX_MANAGER = new FishIndexManager();
+    public static FishIndexManager FISH_INDEX_MANAGER;
     public static final String MODID = "fishingoverhaul";
 
     public FishingOverhaul(ModContainer container) {
@@ -65,6 +66,7 @@ public class FishingOverhaul {
 
     @SubscribeEvent
     public void addReloadListener(AddServerReloadListenersEvent event) {
+        FISH_INDEX_MANAGER = new FishIndexManager(event.getRegistryAccess());
         event.addListener(ResourceLocation.fromNamespaceAndPath(MODID, "fish_index"), FISH_INDEX_MANAGER);
     }
 }
