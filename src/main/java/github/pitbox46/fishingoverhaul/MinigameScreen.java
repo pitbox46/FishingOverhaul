@@ -14,7 +14,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public class MinigameScreen extends Screen {
     public static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath("fishingoverhaul", "textures/minigame.png");
-    protected final float FISH_SPEED = 5;
+    protected final float FISH_SPEED = 10;
 
     protected final float catchChance;
     protected final float critChance;
@@ -22,8 +22,7 @@ public class MinigameScreen extends Screen {
     protected final float maxFishSpeed;
     protected float fishSpeed;
     protected long tickCounter = 0;
-    protected float previousFrame = 0;
-    protected float partialTickCounter = 360;
+    protected float countDown = 360;
     public MinigameScreen(Component titleIn, float catchChance, float critChance, float speedMulti) {
         super(titleIn);
         this.catchChance = catchChance;
@@ -33,24 +32,25 @@ public class MinigameScreen extends Screen {
 
     @Override
     public void render(GuiGraphics pGuiGraphics, int mouseX, int mouseY, float partialTicks) {
-        float ticksSinceLastFrame = tickCounter + partialTicks - previousFrame;
-
         renderBackground(pGuiGraphics, mouseX, mouseY, partialTicks);
 
         RenderSystem.setShader(CoreShaders.POSITION_TEX);
-        blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
+        //Countdown
+        blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 90, countDown - partialTicks, 0, 0, 167);
+        //Circle
         blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 0, 360, 172, 0, 151);
+        //Catch Area
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(90 - 180 * catchChance), 360 * catchChance, 356, 0, 151);
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(270 - 180 * catchChance), 360 * catchChance, 356, 0, 151);
+        //Crit Area
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(90 - 180 * critChance), 360 * critChance, 356, 156, 151);
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(270 - 180 * critChance), 360 * critChance, 356, 156, 151);
-        drawFish(pGuiGraphics, (this.width / 2) + 2, (this.height / 2) + 2, 73f);
+        //Fish
         fishDeg += fishSpeed * partialTicks;
+        drawFish(pGuiGraphics, (this.width / 2) + 2, (this.height / 2) + 2, 73f);
 
-        previousFrame = tickCounter + partialTicks;
-
-        if((partialTickCounter -= ticksSinceLastFrame * 2) < 0) {
-            partialTickCounter = 360;
+        if(countDown < 0) {
+            countDown = 360;
             PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.FAIL));
             onClose();
         }
@@ -62,15 +62,16 @@ public class MinigameScreen extends Screen {
     public void tick() {
         if(tickCounter++ % 20 == 0) {
             if (getMinecraft().player != null)
-                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? maxFishSpeed * 3 : fishSpeed;
+                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? maxFishSpeed * 2 : fishSpeed;
             else
-                fishSpeed = Math.random() > 0.5 ? maxFishSpeed * 2: fishSpeed;
+                fishSpeed = Math.random() > 0.5 ? maxFishSpeed * 2 : fishSpeed;
         }
         if(fishSpeed > maxFishSpeed) {
             fishSpeed -= maxFishSpeed / 20f;
         } else {
             fishSpeed = maxFishSpeed;
         }
+        countDown--;
         super.tick();
     }
 
@@ -87,7 +88,7 @@ public class MinigameScreen extends Screen {
             onClose();
             return true;
         } else {
-            partialTickCounter -= 36;
+            countDown -= 36;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

@@ -1,3 +1,1 @@
-- Add second catch area on top
-- Add crit chance, a fraction of the catch area that yields double loot
-- Add options to control `"speed_multiplier"` and `"crit_chance"`
+- Fix speed
