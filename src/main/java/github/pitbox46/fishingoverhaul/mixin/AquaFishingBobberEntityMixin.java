@@ -6,9 +6,9 @@ import com.teammetallurgy.aquaculture.init.AquaSounds;
 import com.teammetallurgy.aquaculture.item.AquaFishingRodItem;
 import github.pitbox46.fishingoverhaul.ItemFishedEventPre;
 import github.pitbox46.fishingoverhaul.duck.FishingHookDuck;
+import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -30,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Mixin(AquaFishingBobberEntity.class)
 public abstract class AquaFishingBobberEntityMixin extends FishingHook implements FishingHookDuck {
@@ -93,23 +94,27 @@ public abstract class AquaFishingBobberEntityMixin extends FishingHook implement
     }
 
     @Override
-    public void fishingOverhaul$completeGame(boolean win) {
-        if (win) {
-            fishingOverhaul$winGame();
-        } else {
-            fishingOverhaul$loseGame();
+    public void fishingOverhaul$completeGame(MinigameResultPacket.Result result) {
+        switch (result) {
+            case FAIL -> fishingOverhaul$loseGame();
+            case SUCCESS -> fishingOverhaul$winGame(false);
+            case CRIT -> fishingOverhaul$winGame(true);
         }
         this.discard();
     }
 
     // Copy of the code in #retrieve()
     @Unique
-    private void fishingOverhaul$winGame() {
+    private void fishingOverhaul$winGame(boolean crit) {
         var angler = fishingOverhaul$player;
         var stack = fishingOverhaul$rod;
         var lootEntries = fishingOverhaul$minigameLoot;
         var lootParams = fishingOverhaul$lootParams;
         ServerLevel serverLevel = (ServerLevel) this.level();
+
+        if(crit) {
+            lootEntries = Stream.concat(lootEntries.stream(), getLoot(lootParams, serverLevel).stream()).toList();
+        }
 
         var event = new ItemFishedEvent(fishingOverhaul$minigameLoot, this.onGround() ? 2 : 1, this);
         event = new ItemFishedEvent(lootEntries, this.onGround() ? 2 : 1, this);

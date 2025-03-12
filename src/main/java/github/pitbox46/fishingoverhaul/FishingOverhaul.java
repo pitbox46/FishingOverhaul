@@ -34,17 +34,20 @@ public class FishingOverhaul {
     //Listens for ItemFishedEventPre
     public void onFished(ItemFishedEventPre event) {
         List<ItemStack> lootList = event.getDrops();
-        float catchChance = 1f;
-        float variability = 0f;
+        FishIndex entry = FISH_INDEX_MANAGER.getDefaultIndex();
         for(ItemStack itemStack: lootList) {
-            if(FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).catchChance() < catchChance) {
-                catchChance = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).catchChance();
-                variability = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).variability();
+            FishIndex newEntry = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem());
+            //Find the rarest item
+            if (newEntry.catchChance() <= entry.catchChance()) {
+                entry = newEntry;
             }
         }
-        catchChance += (float) (variability * 2 * (event.getEntity().getRandom().nextFloat() - 0.5));
+        float catchChance = entry.catchChance() + (float) (entry.variability() * 2 * (event.getEntity().getRandom().nextFloat() - 0.5));
 
-        PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()), new MinigamePacket(catchChance));
+        PacketHandler.CHANNEL.send(
+                PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()),
+                new MinigamePacket(catchChance, entry.critChance(), entry.speedMulti())
+        );
         CommonProxy.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), event.getHookEntity().getUUID());
     }
 

@@ -28,16 +28,16 @@ public class CommonProxy {
         PacketHandler.init();
     }
 
-    public void handleMinigameResult(NetworkEvent.Context ctx, boolean success) {
+    public void handleMinigameResult(NetworkEvent.Context ctx, MinigameResultPacket.Result result) {
         ServerPlayer player = ctx.getSender();
         Entity e = ((ServerLevel) player.level()).getEntities().get(CURRENTLY_PLAYING.get(player.getUUID()));
         if (e instanceof FishingHook hook) {
-            ((FishingHookDuck) hook).fishingOverhaul$completeGame(success);
+            ((FishingHookDuck) hook).fishingOverhaul$completeGame(result);
         }
         CURRENTLY_PLAYING.remove(player.getUUID());
     }
 
     //Client
-    public void handleOpenMinigame(NetworkEvent.Context ctx, float catchChance) {
+    public void handleOpenMinigame(NetworkEvent.Context ctx, float catchChance, float critChance, float speedMulti) {
     }
 }

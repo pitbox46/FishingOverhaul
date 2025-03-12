@@ -13,7 +13,12 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void handleOpenMinigame(NetworkEvent.Context ctx, float catchChance) {
-        Minecraft.getInstance().setScreen(new MinigameScreen(Component.translatable("screen.fishingoverhaul.minigame"), catchChance));
+    public void handleOpenMinigame(NetworkEvent.Context ctx, float catchChance, float critChance, float speedMulti) {
+        Minecraft.getInstance().setScreen(new MinigameScreen(
+                Component.translatable("screen.fishingoverhaul.minigame"),
+                catchChance,
+                critChance,
+                speedMulti
+        ));
     }
 }

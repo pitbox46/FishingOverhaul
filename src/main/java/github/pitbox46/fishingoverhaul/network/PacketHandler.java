@@ -20,21 +20,28 @@ public class PacketHandler {
                 MinigamePacket.class,
                 (msg, pb) -> {
                     pb.writeFloat(msg.catchChance());
+                    pb.writeFloat(msg.critChance());
+                    pb.writeFloat(msg.speedMulti());
                 },
-                pb -> new MinigamePacket(pb.readFloat()),
+                pb -> new MinigamePacket(pb.readFloat(), pb.readFloat(), pb.readFloat()),
                 (msg, ctx) -> {
-                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleOpenMinigame(ctx.get(), msg.catchChance()));
+                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleOpenMinigame(
+                            ctx.get(),
+                            msg.catchChance(),
+                            msg.critChance(),
+                            msg.speedMulti()
+                    ));
                     ctx.get().setPacketHandled(true);
                 });
         CHANNEL.registerMessage(
                 ID++,
                 MinigameResultPacket.class,
                 (msg, pb) -> {
-                    pb.writeBoolean(msg.success());
+                    pb.writeEnum(msg.result());
                 },
-                pb -> new MinigameResultPacket(pb.readBoolean()),
+                pb -> new MinigameResultPacket(pb.readEnum(MinigameResultPacket.Result.class)),
                 (msg, ctx) -> {
-                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleMinigameResult(ctx.get(), msg.success()));
+                    ctx.get().enqueueWork(() -> FishingOverhaul.PROXY.handleMinigameResult(ctx.get(), msg.result()));
                     ctx.get().setPacketHandled(true);
                 });
     }

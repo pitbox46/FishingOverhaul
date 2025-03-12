@@ -2,6 +2,7 @@ package github.pitbox46.fishingoverhaul.mixin;
 
 import github.pitbox46.fishingoverhaul.ItemFishedEventPre;
 import github.pitbox46.fishingoverhaul.duck.FishingHookDuck;
+import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Mixin(FishingHook.class)
 public abstract class FishingHookMixin extends Projectile implements FishingHookDuck {
@@ -42,6 +44,10 @@ public abstract class FishingHookMixin extends Projectile implements FishingHook
     private Player fishingOverhaul$player = null;
     @Unique
     private ItemStack fishingOverhaul$rod = ItemStack.EMPTY;
+    @Unique
+    private LootParams fishingOverhaul$lootParams = null;
+    @Unique
+    private LootTable fishingOverhaul$lootTable = null;
 
     protected FishingHookMixin(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -78,26 +84,32 @@ public abstract class FishingHookMixin extends Projectile implements FishingHook
             fishingOverhaul$minigameLoot = list;
             fishingOverhaul$player = player;
             fishingOverhaul$rod = pStack;
+            fishingOverhaul$lootParams = lootparams;
+            fishingOverhaul$lootTable = loottable;
             nibble = Integer.MAX_VALUE; // Make sure that this doesn't reach 0
             cir.setReturnValue(overhaulEvent.getRodDamage());
         }
     }
 
     @Override
-    public void fishingOverhaul$completeGame(boolean win) {
-        if (win) {
-            fishingOverhaul$winGame();
-        } else {
-            fishingOverhaul$loseGame();
+    public void fishingOverhaul$completeGame(MinigameResultPacket.Result result) {
+        switch (result) {
+            case FAIL -> fishingOverhaul$loseGame();
+            case SUCCESS -> fishingOverhaul$winGame(false);
+            case CRIT -> fishingOverhaul$winGame(true);
         }
         this.discard();
     }
 
     // Copy of the code in #retrieve()
     @Unique
-    private void fishingOverhaul$winGame() {
+    private void fishingOverhaul$winGame(boolean crit) {
         Player player = fishingOverhaul$player;
         List<ItemStack> list = fishingOverhaul$minigameLoot;
+
+        if(crit) {
+            list = Stream.concat(list.stream(), fishingOverhaul$lootTable.getRandomItems(fishingOverhaul$lootParams).stream()).toList();
+        }
 
         var event = new net.minecraftforge.event.entity.player.ItemFishedEvent(list, this.onGround() ? 2 : 1, (FishingHook)(Object)this);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);

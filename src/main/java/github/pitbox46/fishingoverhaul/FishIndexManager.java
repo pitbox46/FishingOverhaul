@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 public class FishIndexManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON_INSTANCE = (new GsonBuilder()).registerTypeAdapter(FishIndex.class, new FishIndex.Serializer()).create();
-    private FishIndex defaultIndex = null;
+    private FishIndex defaultIndex = new FishIndex(Items.AIR, 0.1F, 0.05F, 0.3F, 1.0F);
     private final Map<Item, FishIndex> fishMap = new HashMap<>();
 
     public FishIndexManager() {
