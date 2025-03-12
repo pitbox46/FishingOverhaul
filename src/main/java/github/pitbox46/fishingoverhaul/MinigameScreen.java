@@ -13,7 +13,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public class MinigameScreen extends Screen {
     public static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath("fishingoverhaul", "textures/minigame.png");
-    protected final float FISH_SPEED = 5;
+    protected final float FISH_SPEED = 3;
 
     protected final float catchChance;
     protected final float critChance;
@@ -61,9 +61,9 @@ public class MinigameScreen extends Screen {
     public void tick() {
         if(tickCounter++ % 20 == 0) {
             if (getMinecraft().player != null)
-                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? maxFishSpeed * 3 : fishSpeed;
+                fishSpeed = getMinecraft().player.getRandom().nextBoolean() ? maxFishSpeed * 2 : fishSpeed;
             else
-                fishSpeed = Math.random() > 0.5 ? maxFishSpeed * 2: fishSpeed;
+                fishSpeed = Math.random() > 0.5 ? maxFishSpeed * 2 : fishSpeed;
         }
         if(fishSpeed > maxFishSpeed) {
             fishSpeed -= maxFishSpeed / 20f;
