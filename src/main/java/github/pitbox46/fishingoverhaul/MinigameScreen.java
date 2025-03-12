@@ -6,8 +6,7 @@ import com.mojang.math.Axis;
 import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -37,7 +36,7 @@ public class MinigameScreen extends Screen {
 
         renderBackground(pGuiGraphics, mouseX, mouseY, partialTicks);
 
-        RenderSystem.setShader(CoreShaders.POSITION_TEX);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 90, partialTickCounter, 0, 0, 167);
         blitCircle(pGuiGraphics, this.width / 2, this.height / 2, 4, 0, 360, 172, 0, 151);
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(90 - 180 * catchChance), 360 * catchChance, 356, 0, 151);
@@ -104,7 +103,7 @@ public class MinigameScreen extends Screen {
         double y = radius * Math.sin(-(fishDeg / 180d) * Math.PI);
         poseStack.translate(centerX + x, centerY + y, 0);
         poseStack.mulPose(Axis.ZP.rotationDegrees(90 - fishDeg));
-        guiGraphics.blit(RenderType::guiTexturedOverlay, TEX, -2, -5, 326, fishSpeed < 0 ? 0 : 6, 11, 6, 512, 512);
+        guiGraphics.blit(TEX, -2, -5, 326, fishSpeed < 0 ? 0 : 6, 11, 6, 512, 512);
         poseStack.popPose();
     }
 
@@ -133,7 +132,7 @@ public class MinigameScreen extends Screen {
         for(float i = degreesStart; i < degreesStart + degreesForward; i++) {
             x = (int) Math.round(radius * Math.cos(-(i / 180d) * Math.PI));
             y = (int) Math.round(radius * Math.sin(-(i / 180d) * Math.PI));
-            guiGraphics.blit(RenderType::guiTexturedOverlay, TEX, x + centerX, y + centerY, x + textureCenterX, y + textureCenterY, stroke, stroke, 512, 512);
+            guiGraphics.blit(TEX, x + centerX, y + centerY, x + textureCenterX, y + textureCenterY, stroke, stroke, 512, 512);
         }
     }
 }
