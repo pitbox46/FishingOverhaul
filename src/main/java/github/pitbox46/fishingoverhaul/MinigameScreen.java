@@ -14,7 +14,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public class MinigameScreen extends Screen {
     public static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath("fishingoverhaul", "textures/minigame.png");
-    protected final float FISH_SPEED = 10;
+    protected final float FISH_SPEED = 8;
 
     protected final float catchChance;
     protected final float critChance;
@@ -51,7 +51,6 @@ public class MinigameScreen extends Screen {
 
         if(countDown < 0) {
             countDown = 360;
-            PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.FAIL));
             onClose();
         }
 
@@ -79,13 +78,11 @@ public class MinigameScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         float cappedFishDeg = normalizeDegrees(fishDeg);
         if (isFishCaught(cappedFishDeg, critChance, 270) || isFishCaught(cappedFishDeg, critChance, 90)) {
-            PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.CRIT));
-            onClose();
+            endGame(MinigameResultPacket.Result.CRIT);
             return true;
         }
         else if(isFishCaught(cappedFishDeg, catchChance, 270) || isFishCaught(cappedFishDeg, catchChance, 90)) {
-            PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.SUCCESS));
-            onClose();
+            endGame(MinigameResultPacket.Result.SUCCESS);
             return true;
         } else {
             countDown -= 36;
@@ -96,6 +93,16 @@ public class MinigameScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void onClose() {
+        endGame(MinigameResultPacket.Result.FAIL);
+    }
+
+    public void endGame(MinigameResultPacket.Result result) {
+        PacketDistributor.sendToServer(new MinigameResultPacket(result));
+        super.onClose();
     }
 
     private void drawFish(GuiGraphics guiGraphics, int centerX, int centerY, float radius) {
