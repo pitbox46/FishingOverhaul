@@ -13,7 +13,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public class MinigameScreen extends Screen {
     public static final ResourceLocation TEX = ResourceLocation.fromNamespaceAndPath("fishingoverhaul", "textures/minigame.png");
-    protected final float FISH_SPEED = 3;
+    protected final float FISH_SPEED = 8;
 
     protected final float catchChance;
     protected final float critChance;
@@ -44,13 +44,12 @@ public class MinigameScreen extends Screen {
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(90 - 180 * critChance), 360 * critChance, 356, 156, 151);
         blitCircle(pGuiGraphics, this.width / 2 - 1, this.height / 2 - 1, 6, normalizeDegrees(270 - 180 * critChance), 360 * critChance, 356, 156, 151);
         drawFish(pGuiGraphics, (this.width / 2) + 2, (this.height / 2) + 2, 73f);
-        fishDeg += fishSpeed * partialTicks;
+        fishDeg += fishSpeed * ticksSinceLastFrame;
 
         previousFrame = tickCounter + partialTicks;
 
         if((partialTickCounter -= ticksSinceLastFrame * 2) < 0) {
             partialTickCounter = 360;
-            PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.FAIL));
             onClose();
         }
 
@@ -77,13 +76,11 @@ public class MinigameScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         float cappedFishDeg = normalizeDegrees(fishDeg);
         if (isFishCaught(cappedFishDeg, critChance, 270) || isFishCaught(cappedFishDeg, critChance, 90)) {
-            PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.CRIT));
-            onClose();
+            endGame(MinigameResultPacket.Result.CRIT);
             return true;
         }
         else if(isFishCaught(cappedFishDeg, catchChance, 270) || isFishCaught(cappedFishDeg, catchChance, 90)) {
-            PacketDistributor.sendToServer(new MinigameResultPacket(MinigameResultPacket.Result.SUCCESS));
-            onClose();
+            endGame(MinigameResultPacket.Result.SUCCESS);
             return true;
         } else {
             partialTickCounter -= 36;
@@ -94,6 +91,16 @@ public class MinigameScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void onClose() {
+        endGame(MinigameResultPacket.Result.FAIL);
+    }
+
+    public void endGame(MinigameResultPacket.Result result) {
+        PacketDistributor.sendToServer(new MinigameResultPacket(result));
+        super.onClose();
     }
 
     private void drawFish(GuiGraphics guiGraphics, int centerX, int centerY, float radius) {
