@@ -1,2 +1,1 @@
-- Use Codecs instead of json serializers
-- Add compat with Aquaculture 2
+- 1.21.1 Backport
