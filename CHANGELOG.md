@@ -1,2 +1,3 @@
-- Use Codecs instead of json serializers
-- Add compat with Aquaculture 2
+- Add second catch area on top
+- Add crit chance, a fraction of the catch area that yields double loot
+- Add options to control `"speed_multiplier"` and `"crit_chance"`

@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FishIndexManager extends SimpleJsonResourceReloadListener<FishIndex> {
-    private DefaultEntry defaultIndex = new DefaultEntry(0.1F, 0.05F);
+    private DefaultEntry defaultIndex = new DefaultEntry(0.1F, 0.05F, 0.3F, 1F);
     private final Map<Item, IndexEntry> fishMap = new HashMap<>();
 
     public FishIndexManager(HolderLookup.Provider lookup) {

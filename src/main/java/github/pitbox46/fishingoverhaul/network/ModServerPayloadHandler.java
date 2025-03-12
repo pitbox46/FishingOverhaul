@@ -16,7 +16,7 @@ public class ModServerPayloadHandler {
         Player player = ctx.player();
         Entity e = ((ServerLevel) player.level()).getEntities().get(CURRENTLY_PLAYING.get(player.getUUID()));
         if (e instanceof FishingHook hook) {
-            ((FishingHookDuck) hook).fishingOverhaul$completeGame(packet.success());
+            ((FishingHookDuck) hook).fishingOverhaul$completeGame(packet.result());
         }
         CURRENTLY_PLAYING.remove(player.getUUID());
     }

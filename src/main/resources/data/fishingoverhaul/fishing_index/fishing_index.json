@@ -1,15 +1,24 @@
 {
-
+  "default": {
+    "catch_chance": 0.1,
+    "variability": 0.05,
+    "crit_chance": 0.3,
+    "speed_multiplier": 1.0
+  },
   "entries": [
     {
       "item": "minecraft:salmon",
       "catch_chance": 0.1,
-      "variability": 0.05
+      "variability": 0.05,
+      "crit_chance": 0.3,
+      "speed_multiplier": 1.0
     },
     {
       "item": "minecraft:cod",
       "catch_chance": 0.1,
-      "variability": 0.05
+      "variability": 0.05,
+      "crit_chance": 0.3,
+      "speed_multiplier": 1.0
     }
   ]
 }

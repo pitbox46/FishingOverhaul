@@ -7,6 +7,11 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ModClientPayloadHandler {
     public static void handleOpenMinigame(MinigamePacket packet, IPayloadContext ctx) {
-        Minecraft.getInstance().setScreen(new MinigameScreen(Component.translatable("screen.fishingoverhaul.minigame"), packet.catchChance()));
+        Minecraft.getInstance().setScreen(new MinigameScreen(
+                Component.translatable("screen.fishingoverhaul.minigame"),
+                packet.catchChance(),
+                packet.critChance(),
+                packet.speedMulti()
+        ));
     }
 }

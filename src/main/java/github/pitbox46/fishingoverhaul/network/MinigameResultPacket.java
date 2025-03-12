@@ -7,16 +7,22 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record MinigameResultPacket(boolean success) implements CustomPacketPayload {
+public record MinigameResultPacket(Result result) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<MinigameResultPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(FishingOverhaul.MODID, "minigame_result"));
     public static final StreamCodec<FriendlyByteBuf, MinigameResultPacket> CODEC = StreamCodec.composite(
-            ByteBufCodecs.BOOL,
-            MinigameResultPacket::success,
-            MinigameResultPacket::new
+            ByteBufCodecs.INT,
+            packet -> packet.result().ordinal(),
+            i -> new MinigameResultPacket(Result.values()[i])
     );
 
     @Override
     public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    public enum Result {
+        FAIL,
+        SUCCESS,
+        CRIT
     }
 }

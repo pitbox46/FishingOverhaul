@@ -1,6 +1,7 @@
 package github.pitbox46.fishingoverhaul;
 
 import github.pitbox46.fishingoverhaul.fishindex.FishIndexManager;
+import github.pitbox46.fishingoverhaul.fishindex.IndexEntry;
 import github.pitbox46.fishingoverhaul.network.MinigameResultPacket;
 import github.pitbox46.fishingoverhaul.network.ModClientPayloadHandler;
 import github.pitbox46.fishingoverhaul.network.ModServerPayloadHandler;
@@ -50,17 +51,21 @@ public class FishingOverhaul {
     @SubscribeEvent
     public void onFished(ItemFishedEventPre event) {
         List<ItemStack> lootList = event.getDrops();
-        float catchChance = 1f;
-        float variability = 0f;
+        IndexEntry entry = FISH_INDEX_MANAGER.getDefaultIndex();
         for(ItemStack itemStack: lootList) {
-            if(FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).catchChance() < catchChance) {
-                catchChance = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).catchChance();
-                variability = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem()).variability();
+            IndexEntry newEntry = FISH_INDEX_MANAGER.getIndexFromItem(itemStack.getItem());
+            //Find the rarest item
+            if (newEntry.catchChance() <= entry.catchChance()) {
+                entry = newEntry;
             }
         }
-        catchChance += (float) (variability * 2 * (event.getEntity().getRandom().nextFloat() - 0.5));
+        float catchChance = entry.catchChance() + (entry.variability() * 2 * (event.getEntity().getRandom().nextFloat() - 0.5F));
 
-        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new MinigamePacket(catchChance));
+        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new MinigamePacket(
+                catchChance,
+                entry.critChance(),
+                entry.speedMulti()
+        ));
         ModServerPayloadHandler.CURRENTLY_PLAYING.put(event.getEntity().getUUID(), event.getHookEntity().getUUID());
     }
 
