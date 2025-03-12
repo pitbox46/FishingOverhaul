@@ -1,1 +1,2 @@
+- Use Codecs instead of json serializers
 - Add compat with Aquaculture 2
