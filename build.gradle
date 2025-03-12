@@ -67,7 +67,7 @@ minecraft {
     // However, it must be at "META-INF/accesstransformer.cfg" in the final mod jar to be loaded by Forge.
     // This default location is a best practice to automatically put the file in the right place in the final jar.
     // See https://docs.minecraftforge.net/en/latest/advanced/accesstransformers/ for more information.
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -156,7 +156,8 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    runtimeOnly fg.deobf("curse.maven:fishing-real-348834:4637946")
+    compileOnly fg.deobf("curse.maven:aquaculture-${aquaculture_id}:${aquaculture_file}")
+    runtimeOnly fg.deobf("curse.maven:aquaculture-${aquaculture_id}:${aquaculture_file}")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -168,7 +169,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range,
-            fishingreal_version_range: fishingreal_version_range,
+            aquaculture_version_range: aquaculture_version_range,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
     ]
