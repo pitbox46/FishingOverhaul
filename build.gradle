@@ -128,13 +128,15 @@ repositories {
     //     dir 'libs'
     // }
     maven {
-        url 'https://www.cursemaven.com'
+        url {
+            'https://www.cursemaven.com'
+        }
     }
 }
 
 dependencies {
-//    compileOnly fg.deobf("curse.maven:fishing-real-348834:4637946")
-//    runtimeOnly fg.deobf("curse.maven:fishing-real-348834:4637946")
+    compileOnly "curse.maven:aquaculture-${aquaculture_id}:${aquaculture_file}"
+    runtimeOnly "curse.maven:aquaculture-${aquaculture_id}:${aquaculture_file}"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -153,7 +155,8 @@ tasks.withType(ProcessResources).configureEach {
             mod_license            : mod_license,
             mod_version            : mod_version,
             mod_authors            : mod_authors,
-            mod_description        : mod_description
+            mod_description        : mod_description,
+            aquaculture_version_range:aquaculture_version_range
     ]
     inputs.properties replaceProperties
 

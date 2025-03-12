@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "fishingoverhaul.refmap.json",
   "mixins": [
+    "AquaFishingBobberEntityMixin",
     "FishingHookMixin"
   ],
   "client": [
