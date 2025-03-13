@@ -34,10 +34,8 @@ jobs:
       - name: mc-publish neoforge
         uses: Kira-NT/mc-publish@v3.3.0
         with:
-          modrinth-id: mO6KzcvH
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
-          curseforge-id: 491332
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
 
           files: |
