@@ -21,3 +21,9 @@ Should be compatible with most other fishing mods. Explicit compatibility with A
 
 - [fishing_index_guide.md](fishing_index_guide.md)
 
+## Links
+
+- [Github](https://github.com/pitbox46/FishingOverhaul)
+- [Curseforge](https://www.curseforge.com/minecraft/mc-mods/fishing-overhaul)
+- [Modrinth](https://modrinth.com/mod/fishingoverhaul)
+- [Discord](https://discord.gg/cZbRsXGXZt)
