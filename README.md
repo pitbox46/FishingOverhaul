@@ -2,6 +2,8 @@
 
 Adds a minigame for fishing
 
+[YouTube demo](https://youtu.be/kmW6xKJcovk)
+
 ## Description
 
 When you pull a fish, a minigame will appear - a fish swimming around a circle. 
