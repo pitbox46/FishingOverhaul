@@ -19,7 +19,7 @@ Should be compatible with most other fishing mods. Explicit compatibility with A
 
 ## Guides
 
-- [fishing_index_guide.md](fishing_index_guide.md)
+- [fishing_index_guide.md](https://github.com/pitbox46/FishingOverhaul/blob/master/fishing_index_guide.md)
 
 ## Links
 
