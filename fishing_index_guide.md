@@ -4,7 +4,7 @@ The fish index uses the datapack system so that other mods and datapacks can
 easily implement their own entries that work nicely with the preexisting
 entries.
 
-The directory to target is `data/[namespace]/fishing_index/fishing_index.json`.
+The directory to target is `data/fishingoverhaul/fishing_index/fishing_index.json`.
 
 The default fishing index can be found [here](./src/main/resources/data/fishingoverhaul/fishing_index/fishing_index.json)
 
